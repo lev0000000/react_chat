@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import EmojiPicker from "emoji-picker-react";
 import icon from "../assets/images/emoji.png";
@@ -9,7 +9,8 @@ export default function Chat() {
   const [state, setState] = useState([]);
   const { search } = useLocation();
   const [params, setParams] = useState([]);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState([""]);
+  const [userMessage, setUserMessage] = useState([])
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -25,11 +26,14 @@ export default function Chat() {
       setState((state) => [...state, { user, message }]);
     });
   }, []);
-
-  const leftRoom = () => {};
+  const navigate = useNavigate()
   const handelClick = () => {};
   const handlerEmoji = ({emoji}) => {
-    setMessage(`${message} ${emoji}`)
+    setMessage(`${message}` + `${emoji}`)
+  }
+  const changeMessage = (e) => {
+    setMessage(e)
+    console.log(message)
   }
   const handleSend = () => {};
 
@@ -44,16 +48,17 @@ export default function Chat() {
               Chat of Room {params.room}
             </span>
           </h1>
-          <span className="text-white">0 users in this room</span>
+          <span className="text-white">{state.length} users in this room</span>
           <button
             type="button"
             class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-          >
+            onClick={()=>navigate('/')}
+            >
             Left the chat
           </button>
         </div>
 
-        <div className="min-h-[900px] flex flex-col gap-4 ">
+        <div className="min-h-[600px] flex flex-col gap-4 ">
             <span className="text-white">
                 {state.map((item) => item.message)}
             </span>
@@ -66,8 +71,8 @@ export default function Chat() {
               name="username"
               placeholder="What do you want write"
               value={message}
+              onChange={(e)=>changeMessage(e.target.value)}
               autoComplete="off"
-              required
             />
             <div className="w-8 h-8 absolute inset-y-0 right-3 top-1 w-16 z-1">
               <button onClick={()=>setIsOpen(!isOpen)}>
@@ -76,8 +81,8 @@ export default function Chat() {
             </div>
           </div>
           <div className="">
-            <div className="absolute bottom-[280px] right-[650px]">
-              {isOpen && <EmojiPicker className="" onEmojiClick={(e)=>handlerEmoji(e)}/>}
+            <div className="absolute bottom-[160px] right-[550px]">
+              {isOpen && <EmojiPicker className="" onEmojiClick={()=>handlerEmoji}/>}
             </div>
             <div className="flex justify-center mt-2">
               <button
