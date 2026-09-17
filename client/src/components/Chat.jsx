@@ -28,9 +28,9 @@ export default function Chat() {
 
   const leftRoom = () => {};
   const handelClick = () => {};
-  const onEmojiClick = () => {
-    setIsOpen((isOpen) => !isOpen);
-  };
+  const handlerEmoji = ({emoji}) => {
+    setMessage(`${message} ${emoji}`)
+  }
   const handleSend = () => {};
 
   console.log(state);
@@ -70,14 +70,14 @@ export default function Chat() {
               required
             />
             <div className="w-8 h-8 absolute inset-y-0 right-3 top-1 w-16 z-1">
-              <button>
+              <button onClick={()=>setIsOpen(!isOpen)}>
                 <img src={icon} alt="" />
               </button>
             </div>
           </div>
           <div className="">
-            <div className="">
-              {isOpen && <EmojiPicker onEmojiClick={onEmojiClick()} />}
+            <div className="absolute bottom-[280px] right-[650px]">
+              {isOpen && <EmojiPicker className="" onEmojiClick={(e)=>handlerEmoji(e)}/>}
             </div>
             <div className="flex justify-center mt-2">
               <button
