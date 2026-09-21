@@ -1,16 +1,28 @@
 let users = []
 
 const addUser = (user) => {
-    const userName = user.name.trim().toLowerCase()
-    const userRoom = user.room.trim().toLowerCase()
-
-    const isExist = users.find(u=> u.name.trim().toLowerCase() === userName && u.room.trim().toLowerCase() === userRoom)
+    const isExist = findUser(user)
 
     !isExist && users.push(user)
 
-    const currentUser = isExist || user
+    currentUser = isExist || user;
 
-    return { isExist: !!isExist , user: currentUser}
+    return { isExist: !!isExist, user: currentUser}
 } 
 
-module.exports = { addUser }
+const findUser = (params) => {
+    const userName = params.name.trim().toLowerCase()
+    const userRoom = params.room.trim().toLowerCase()
+
+    return users.find(u=> u.name.trim().toLowerCase()===userName && u.room.trim().toLowerCase() === userRoom)
+}
+
+const countOnlineRoom = (room) => {
+    return users.filter(item=> item.room === room)
+}
+
+const delCountOnline = (user, array) => {
+    return array.filter(item => item.name != user)
+}
+
+module.exports = { addUser, findUser, countOnlineRoom, delCountOnline}
