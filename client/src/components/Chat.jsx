@@ -6,7 +6,7 @@ import icon from "../assets/images/emoji.png";
 import Message from "./Message";
 import useSound from "use-sound";
 import boopSfx from "../assets/sound/message.mp3";
-const socket = io.connect("http://localhost:5000");
+const socket = io();
 
 export default function Chat() {
   const [state, setState] = useState([]);
@@ -62,7 +62,7 @@ export default function Chat() {
 
   const leftRoom = () => {
     socket.emit("delSession", { params });
-    socket.emit("disconnectUser");
+    
     navigate("/");
   };
 
