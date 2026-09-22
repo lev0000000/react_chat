@@ -1,35 +1,48 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import EmojiPicker from "emoji-picker-react";
 import icon from "../assets/images/emoji.png";
 import Message from "./Message";
+import useSound from "use-sound";
+import boopSfx from "../assets/sound/message.mp3";
 const socket = io.connect("http://localhost:5000");
 
 export default function Chat() {
   const [state, setState] = useState([]);
-  const { search, state:file } = useLocation();
+  const { search, state: file } = useLocation();
   const [params, setParams] = useState([]);
   const [message, setMessage] = useState([""]);
   const [onlineUsers, setOnlineUsers] = useState(0);
+  const [play] = useSound(boopSfx);
+  const bottomRef = useRef(null)
+
   // const [userMessage, setUserMessage] = useState([]);
   // const [viewMessage, setViewMessage] = useState([{ name: "", message: "" }]);
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const searchParams = Object.fromEntries(new URLSearchParams(search));
-    console.log(searchParams, file)
     setParams(searchParams);
-    socket.emit("join", {searchParams:searchParams, file:file});
-  }, [search]);
+    socket.emit("join", { searchParams: searchParams, file: file });
+  }, [search, file]);
+
+  const handler = ({ data }) => {
+    const { user, message, countOnline } = data;
+    setState((state) => [...state, { user, message }]);
+    setOnlineUsers(countOnline);
+  };
 
   useEffect(() => {
-    socket.on("message", ({ data }) => {
-      const { user, message, countOnline } = data;
-      setState((state) => [...state, { user, message }]);
-      setOnlineUsers(countOnline)
-    });
+    socket.on("message", handler);
+
+    return () => socket.off("message", handler);
   }, []);
+
+  useEffect(() => {
+    play();
+    bottomRef.current.scrollIntoView({ behavior: "smooth" })
+  }, [state]);
 
   const navigate = useNavigate();
 
@@ -41,15 +54,15 @@ export default function Chat() {
     setMessage(e);
   };
 
-  const sendMessage = () => {
+  const sendMessage = (e) => {
+    e.preventDefault();
     socket.emit("SendMessage", { params, message });
-    console.log({ params, message });
-
     setMessage("");
   };
 
   const leftRoom = () => {
-    socket.emit("delSession", {params})
+    socket.emit("delSession", { params });
+    socket.emit("disconnectUser");
     navigate("/");
   };
 
@@ -72,15 +85,16 @@ export default function Chat() {
           </button>
         </div>
 
-        <div className="min-h-[600px] flex flex-col gap-4 ">
-          {state.map((item) => (
+        <div className="min-h-[600px] max-h-[600px] p-8 flex flex-col gap-4 overflow-auto">
+          {state.map((item, index) => (
             <Message
               user={item.user}
               message={item.message}
               params={params}
-              key={Date.now}
+              key={index}
             />
           ))}
+          <div ref={bottomRef}></div>
         </div>
         <form action="">
           <div className="flex relative ">
@@ -92,8 +106,7 @@ export default function Chat() {
               value={message}
               onChange={(e) => changeMessage(e.target.value)}
               autoComplete="off"
-            />{" "}
-            w
+            />
             <div className="w-8 h-8 absolute inset-y-0 right-3 top-1 w-16 z-1">
               <button type="button" onClick={() => setIsOpen(!isOpen)}>
                 <img src={icon} alt="" />
@@ -111,9 +124,9 @@ export default function Chat() {
             </div>
             <div className="flex justify-center mt-2">
               <button
-                type="button"
+                type="submit"
                 className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-20 py-3  dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
-                onClick={() => sendMessage()}
+                onClick={(e) => sendMessage(e)}
               >
                 Send
               </button>

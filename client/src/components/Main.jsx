@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
+
 export default function Main() {
   const FIELD = {
     NAME: "name",
@@ -19,6 +20,7 @@ export default function Main() {
     const isDisabled = Object.values(values).some((value) => !value);
     if (isDisabled) e.preventDefault();
   };
+
 
   return (
     <div className="container mx-auto px-4 flex flex-col items-center justify-center gap-5 ">
@@ -53,7 +55,7 @@ export default function Main() {
         <div className="flex flex-col items-center gap-2">
           <label className="text-zinc-300 " for='file'>Upload your photo</label>
           <input
-            className="cursor-pointer w-[200px]  rounded-lg text-white bg-neutral-secondary-medium  border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full shadow-xs placeholder:text-body"
+            className="cursor-pointer w-[195px]  rounded-lg text-white bg-neutral-secondary-medium  border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full shadow-xs placeholder:text-body"
             id="file_input"
             type="file"
             name="file"

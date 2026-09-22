@@ -1,6 +1,7 @@
 const express = require('express')
+const fs = require('fs');
+const path = require('path');
 const fileupload = require('express-fileupload');
-const path = require('path')
 const http = require('http'); // native node js http request   
 const { Server } = require('socket.io') // init socket io realtime connection
 const cors = require('cors');
@@ -26,13 +27,28 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
 
     socket.on('join', ({ searchParams, file }) => {
-        const {name,room} = searchParams
+        const { name, room } = searchParams
 
         socket.join(room)
-        console.log(file.file)
-        const user = addUser({name,room})
+        let fileName = `${name}.webp`
+        let filePath = path.join(__dirname, 'static', 'avatars', fileName)
+        for (let i = 0; i < 3; i++) {
+            if (!fs.existsSync(filePath)) {
+                try {
+                    fs.writeFileSync(filePath, file.file)
+                    console.log(filePath)
+                } catch {
+                    fileName = 'undefined.webp'
+                    filePath = path.join(__dirname, 'static', 'avatars', fileName)
+                    continue;
+                }
+            }
+        }
+
+
+        const user = addUser({ name, room })
         let countOnline = countOnlineRoom(room).length
-        
+
 
         socket.emit('message', {
             data: {
@@ -50,26 +66,36 @@ io.on('connection', (socket) => {
             }
         })
 
-        socket.on('SendMessage', ({params, message})=> {
+        socket.on('SendMessage', ({ params, message }) => {
             const user = findUser(params)
-            console.log(params,message)
-            if(user){
-                io.to(user.room).emit("message",{data: {user,message}})
+            console.log(params, message)
+            if (user) {
+                io.to(user.room).emit("message", { data: { user, message } })
             }
         })
 
-        socket.on('delSession', ({params}) =>{
-            countOnline = delCountOnline(name, countOnlineRoom(params.room)).length+0
-            socket.broadcast.to(params.room).emit('message', {data:{
-                user:params.name,
-                message: `${params.name} left chat`,
-                countOnline
-            }})
+        socket.on('delSession', ({ params }) => {
+            countOnline = delCountOnline(name, countOnlineRoom(params.room)).length + 0
+            socket.broadcast.to(params.room).emit('message', {
+                data: {
+                    user: params.name,
+                    message: `${params.name} left chat`,
+                    countOnline
+                }
+            })
         })
+
+        socket.on("disconnectUser", () => {
+            socket.disconnect();
+            console.log(`${user.user.name} отключился от комнаты ${room}`);
+
+        });
+
     })
 
     io.on('disconnect', () => {
         console.log('Disconnect')
+        
     })
 })
 
